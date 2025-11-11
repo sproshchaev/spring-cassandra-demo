@@ -1,44 +1,47 @@
 # spring-cassandra-demo
 # Пример работы из spring-boot с 
 
-### Как поднять Cassandra
+### Запуск кластера Cassandra и сервиса spring-cassandra-demo 
 1. Запустить Docker
-2. Развернуть кластер из [docker-compose.yaml](docker-compose.yaml)
-3. При старте приложения будут созданы схемы из [schema.cql](src/main/resources/db/schema.cql)
-4. И загружены данные из [data.cql](src/main/resources/db/data.cql)
 
-### Использование консольной утилиты CQL Shell (cqlsh)
-1. Запуск утилиты из Docker
+2. Развернуть кластер из [docker-compose.yaml](docker-compose.yaml)
+
+3. Дождаться в логах конейнера cassandra-db сообщения 
+```angular2html
+INFO [main] 2025-11-11 14:26:24,902 CassandraDaemon.java:776 - Startup complete
+```
+
+4. Запуск утилиты из Docker
 ```bash
 docker exec -it cassandra-db cqlsh
 ```
-2. Команды в консольной утилите cqlsh:
+5. Команды в консольной утилите cqlsh:
 
-`2.1` Просмотр всех ключевых пространств (keyspaces - аналог базы данных в реляционных СУБД)
+`5.1` Просмотр всех ключевых пространств (keyspaces - аналог базы данных в реляционных СУБД)
 ```text
 DESCRIBE KEYSPACES;
 ```
 
-`2.2` Пример создания keyspaces:  
+`5.2` Пример создания keyspaces:  
 ```text
-CREATE KEYSPACE mykeyspace
+CREATE KEYSPACE userkeyspace
 WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': 1
 };
 ```
 
-`2.3` Посмотреть все таблицы которые есть в keyspaces
+`5.3` Посмотреть все таблицы которые есть в keyspaces
 ```text
 DESCRIBE TABLES;
 ```
 
-`2.3.1` Просмотреть все структуры (таблицы, типы, функции и т.д.)
+`5.3.1` Просмотреть все структуры (таблицы, типы, функции и т.д.)
 ```text
 DESCRIBE userkeyspace;
 ```
 
-`2.4` Пример создания таблицы person в userkeyspace
+`5.4` Пример создания таблицы person в userkeyspace
 ```text
 CREATE TABLE IF NOT EXISTS userkeyspace.person (
     user_id UUID,
@@ -50,34 +53,36 @@ CREATE TABLE IF NOT EXISTS userkeyspace.person (
 );
 ```
 
-`2.5` Добавить запись (INSERT):
+`5.5` Добавить запись (INSERT):
 ```text
 INSERT INTO userkeyspace.person (user_id, created_at, email, name, status)
 VALUES (uuid(), toTimestamp(now()), 'john@example.com', 'John Doe', 'active');
 ```
 
-`2.6` Найти запись по name (SELECT) c ALLOW FILTERING (Плохо для производительности)
+`5.6` Найти запись по name (SELECT) c ALLOW FILTERING (Плохо для производительности)
 ```text
 SELECT * FROM userkeyspace.person WHERE name = 'John Doe' ALLOW FILTERING;
 ```
 
-`2.7` Создать индекс по email
+`5.7` Создать индекс по email
 ```text
 CREATE INDEX ON userkeyspace.person (email);
 ```
 
-`2.8` Найти запись по email (индекс есть, ALLOW FILTERING не требуется) 
+`5.8` Найти запись по email (индекс есть, ALLOW FILTERING не требуется) 
 ```text
 SELECT * FROM userkeyspace.person WHERE email = 'john@example.com';
 ```
 
-### Пример эндпоинтов
-1. Получить всех пользователей
+6. Запустить [SpringCassandraDemoApp.java](src/main/java/com/prosoft/SpringCassandraDemoApp.java)  
+
+
+7. Получить всех пользователей
 ```bash
 curl -X GET http://localhost:8080/users
 ```
 
-2. Создать нового пользователя
+8. Создать нового пользователя
 ```bash
 curl -X POST http://localhost:8080/users \
   -H "Content-Type: application/json" \
@@ -88,12 +93,12 @@ curl -X POST http://localhost:8080/users \
   }'
 ```
 
-3. Получить пользователя по ID
+9. Получить пользователя по ID
 ```bash
 curl -X GET http://localhost:8080/users/{id}
 ```
 
-4. Удалить пользователя по ID
+10. Удалить пользователя по ID
 ```bash
 curl -X DELETE http://localhost:8080/users/{id}
 ```
